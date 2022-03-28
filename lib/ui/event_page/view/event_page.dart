@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/widgets/widgets.dart';
 import 'package:event_runner/util/theme.dart';
@@ -22,8 +23,8 @@ class EventPage extends StatelessWidget {
                 clipper: const ShapeBorderClipper(
                   shape: CircleBorder(),
                 ),
-                child: Image.network(
-                  event.posterUrl,
+                child: CachedNetworkImage(
+                  imageUrl: event.posterUrl,
                   fit: BoxFit.fitWidth,
                 ),
               ),

@@ -32,4 +32,14 @@ class Profile {
       'passwordHash': passwordHash,
     };
   }
+
+  Profile withId(int id) {
+    return Profile(
+      id: id,
+      email: email,
+      avatarUrl: avatarUrl,
+      displayName: displayName,
+      passwordHash: passwordHash,
+    );
+  }
 }

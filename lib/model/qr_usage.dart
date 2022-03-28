@@ -21,3 +21,19 @@ extension QrUsageX on QrUsage {
     }
   }
 }
+
+extension StringXQrUsage on String {
+  QrUsage get toQrUsage {
+    if (this == 'Вход по QR-коду') {
+      return QrUsage.onlyIn;
+    } else if (this == 'Вход и выход по QR-коду') {
+      return QrUsage.inAndOut;
+    } else if (this == 'QR-коды для достижений') {
+      return QrUsage.achievements;
+    } else if (this == 'QR-коды для каждого шага') {
+      return QrUsage.everyStep;
+    } else {
+      return QrUsage.noQr;
+    }
+  }
+}

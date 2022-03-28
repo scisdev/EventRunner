@@ -15,7 +15,7 @@ class Login extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => LoginCubit(),
+      create: (_) => LoginCubit(RepositoryProvider.of<Database>(context)),
       child: BlocListener<LoginCubit, LoginState>(
         listener: (ctx, state) {
           if (state is LoginSuccess) {

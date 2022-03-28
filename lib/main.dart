@@ -1,4 +1,5 @@
 import 'package:event_runner/business_logic/cubit/cubit.dart';
+import 'package:event_runner/business_logic/storage.dart';
 import 'package:event_runner/ui/login/first.dart';
 import 'package:event_runner/ui/main/main.dart';
 import 'package:event_runner/ui/onboard/onboard.dart';
@@ -43,27 +44,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => EventCubit()),
-        BlocProvider(create: (_) => ProfileCubit()),
-      ],
-      child: MaterialApp(
-        title: 'Event Runner',
-        theme: ThemeData(
-          backgroundColor: Colors.white,
-          scaffoldBackgroundColor: Colors.white,
-          colorScheme: ColorScheme.fromSwatch().copyWith(
-            secondary: ThemeColors.primary,
-            error: ThemeColors.primaryRed,
-            background: Colors.white,
+    return RepositoryProvider(
+      create: (_) => Database(),
+      child: Builder(builder: (context) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => EventCubit(
+                RepositoryProvider.of<Database>(context),
+              ),
+            ),
+            BlocProvider(create: (_) => ProfileCubit()),
+          ],
+          child: MaterialApp(
+            title: 'Event Runner',
+            theme: ThemeData(
+              backgroundColor: Colors.white,
+              scaffoldBackgroundColor: Colors.white,
+              colorScheme: ColorScheme.fromSwatch().copyWith(
+                secondary: ThemeColors.primary,
+                error: ThemeColors.primaryRed,
+                background: Colors.white,
+              ),
+              textTheme: const TextTheme(
+                bodyText2: ThemeFonts.p1,
+              ),
+            ),
+            home: const OnBoarding(),
           ),
-          textTheme: const TextTheme(
-            bodyText2: ThemeFonts.p1,
-          ),
-        ),
-        home: const OnBoarding(),
-      ),
+        );
+      }),
     );
   }
 }
@@ -79,33 +89,30 @@ class _InitialScreenState extends State<InitialScreen> {
   @override
   void initState() {
     super.initState();
-    listener(BlocProvider.of<ProfileCubit>(context).state);
-  }
 
-  void listener(ProfileState state) {
-    if (state.status == ProfileStateStatus.success) {
-      if (state.currentUser == null) {
+    Future(() async {
+      await RepositoryProvider.of<Database>(context).init();
+      final p = await LocalUser.getLocalProfile();
+      if (p == null) {
         Navigator.pushReplacement(context, NavigatorPage(
           builder: (_) {
             return const Login();
           },
         ));
       } else {
+        BlocProvider.of<ProfileCubit>(context).onUserLoggedIn(p);
         Navigator.pushReplacement(context, NavigatorPage(
           builder: (_) {
             return const MainScreen();
           },
         ));
       }
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileCubit, ProfileState>(
-      listener: (ctx, state) => listener(state),
-      child: const Scaffold(),
-    );
+    return const Scaffold();
   }
 }
 

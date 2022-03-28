@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:event_runner/main.dart';
 import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/event_page/view/event_page.dart';
@@ -62,8 +63,8 @@ class EventEntry extends StatelessWidget {
           child: SizedBox(
             height: 31,
             width: 31,
-            child: Image.network(
-              event.creator.avatarUrl,
+            child: CachedNetworkImage(
+              imageUrl: event.creator.avatarUrl,
               fit: BoxFit.cover,
             ),
           ),
@@ -87,8 +88,8 @@ class EventEntry extends StatelessWidget {
       child: SizedBox(
         height: 31,
         width: 31,
-        child: Image.network(
-          event.creator.avatarUrl,
+        child: CachedNetworkImage(
+          imageUrl: event.creator.avatarUrl,
           fit: BoxFit.cover,
         ),
       ),
@@ -96,11 +97,20 @@ class EventEntry extends StatelessWidget {
   }
 
   Widget posterPic() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(16)),
-      child: Image.network(
-        event.posterUrl,
-        fit: BoxFit.fitWidth,
+    return SizedBox(
+      width: double.infinity,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
+        child: FittedBox(
+          fit: BoxFit.fitWidth,
+          child: SizedBox.square(
+            dimension: 10,
+            child: CachedNetworkImage(
+              imageUrl: event.posterUrl,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
       ),
     );
   }
