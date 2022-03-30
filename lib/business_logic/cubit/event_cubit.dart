@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:event_runner/model/model.dart';
+import 'package:event_runner/model/model.dart' hide EventState;
 import 'cubit.dart';
 
 class EventCubit extends Cubit<EventState> {

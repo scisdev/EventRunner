@@ -1,9 +1,9 @@
 import 'package:event_runner/model/model.dart';
-import 'package:event_runner/util/theme.dart';
 
 class Event {
   final int id;
-  final Profile creator;
+  final int creatorId;
+  final List<int> attendeeIds;
   final String name;
   final String desc;
   final String type;
@@ -11,10 +11,12 @@ class Event {
   final String duration;
   final String posterUrl;
   final QrUsage qrUsage;
+  final EventState state;
 
   Event({
     required this.id,
-    required this.creator,
+    required this.creatorId,
+    required this.attendeeIds,
     required this.name,
     required this.desc,
     required this.type,
@@ -22,6 +24,7 @@ class Event {
     required this.duration,
     required this.posterUrl,
     required this.qrUsage,
+    required this.state,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -29,12 +32,14 @@ class Event {
       id: json['id'],
       name: json['name'],
       desc: json['desc'],
-      creator: Profile.fromJson(json['creator']),
+      creatorId: json['creatorId'],
+      attendeeIds: (json['attendeeIds'] as List).map((e) => e as int).toList(),
       duration: json['duration'],
       type: json['type'],
       posterUrl: json['posterUrl'],
       startTime: DateTime.parse(json['startTime']),
       qrUsage: (json['qrUsage'] as String).toQrUsage,
+      state: (json['state'] as String).toState,
     );
   }
 
@@ -43,12 +48,14 @@ class Event {
       'id': id,
       'name': name,
       'desc': desc,
-      'creator': creator.toJson(),
+      'creatorId': creatorId,
+      'attendeeIds': attendeeIds,
       'duration': duration,
       'type': type,
       'posterUrl': posterUrl,
       'startTime': startTime.toIso8601String(),
       'qrUsage': qrUsage.toDisplayString,
+      'state': state.toDisplayString,
     };
   }
 
@@ -57,12 +64,14 @@ class Event {
       id: id,
       name: name,
       desc: desc,
-      creator: creator,
+      creatorId: creatorId,
+      attendeeIds: attendeeIds,
       type: type,
       duration: duration,
       startTime: startTime,
       qrUsage: qrUsage,
       posterUrl: posterUrl,
+      state: state,
     );
   }
 }

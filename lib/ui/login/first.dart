@@ -1,8 +1,8 @@
 import 'package:event_runner/business_logic/cubit/cubit.dart';
+import 'package:event_runner/business_logic/storage.dart';
 import 'package:event_runner/main.dart';
 import 'package:event_runner/ui/login/cubit/login_cubit.dart';
 import 'package:event_runner/ui/login/cubit/login_state.dart';
-import 'package:event_runner/ui/main/main.dart';
 import 'package:event_runner/ui/widgets/widgets.dart';
 import 'package:event_runner/util/theme.dart';
 import 'package:flutter/material.dart';
@@ -19,16 +19,8 @@ class Login extends StatelessWidget {
       child: BlocListener<LoginCubit, LoginState>(
         listener: (ctx, state) {
           if (state is LoginSuccess) {
-            BlocProvider.of<ProfileCubit>(context).onUserLoggedIn(
-              state.profileFromBackend,
-            );
-
-            Navigator.pushReplacement(
-              context,
-              NavigatorPage(builder: (_) {
-                return const MainScreen();
-              }),
-            );
+            OuterNavigator.instance.toMainApp(state.profileFromBackend);
+            LocalUser.persistLocalProfile(state.profileFromBackend);
           } else if (state is LoginError) {
             ScaffoldMessenger.of(context).clearSnackBars();
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(

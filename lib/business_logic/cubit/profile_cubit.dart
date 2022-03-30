@@ -1,16 +1,34 @@
-import 'package:event_runner/business_logic/cubit/profile_state.dart';
-import 'package:event_runner/business_logic/storage.dart';
+import 'package:event_runner/business_logic/cubit/cubit.dart';
 import 'package:event_runner/model/model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit()
+  final Database _db;
+
+  ProfileCubit(this._db, {required Profile profile})
       : super(ProfileState(
-          currentUser: null,
+          currentUser: profile,
+          profileInfo: null,
         ));
 
-  void onUserLoggedIn(Profile profile) {
-    emit(state.withUser(profile));
-    LocalUser.persistLocalProfile(profile);
+  void loadInfo({bool reload = false}) async {
+    if (!reload && state.profileInfo != null) return;
+
+    try {
+      final events = await _db.getEvents();
+
+      emit(
+        state.withInfo(
+          ProfileInfo(
+            attendedEvents: events
+                .where((e) => e.attendeeIds.contains(state.currentUser.id))
+                .toList(growable: false),
+            createdEvents: events
+                .where((e) => e.creatorId == state.currentUser.id)
+                .toList(growable: false),
+          ),
+        ),
+      );
+    } catch (_) {}
   }
 }

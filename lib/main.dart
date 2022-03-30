@@ -1,5 +1,6 @@
 import 'package:event_runner/business_logic/cubit/cubit.dart';
 import 'package:event_runner/business_logic/storage.dart';
+import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/login/first.dart';
 import 'package:event_runner/ui/main/main.dart';
 import 'package:event_runner/ui/onboard/onboard.dart';
@@ -35,7 +36,6 @@ void initSetup() {
 
 void main() {
   initSetup();
-
   runApp(const MyApp());
 }
 
@@ -47,31 +47,22 @@ class MyApp extends StatelessWidget {
     return RepositoryProvider(
       create: (_) => Database(),
       child: Builder(builder: (context) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (_) => EventCubit(
-                RepositoryProvider.of<Database>(context),
-              ),
+        return MaterialApp(
+          title: 'Event Runner',
+          navigatorKey: _outerNavigatorKey,
+          theme: ThemeData(
+            backgroundColor: Colors.white,
+            scaffoldBackgroundColor: Colors.white,
+            colorScheme: ColorScheme.fromSwatch().copyWith(
+              secondary: ThemeColors.primary,
+              error: ThemeColors.primaryRed,
+              background: Colors.white,
             ),
-            BlocProvider(create: (_) => ProfileCubit()),
-          ],
-          child: MaterialApp(
-            title: 'Event Runner',
-            theme: ThemeData(
-              backgroundColor: Colors.white,
-              scaffoldBackgroundColor: Colors.white,
-              colorScheme: ColorScheme.fromSwatch().copyWith(
-                secondary: ThemeColors.primary,
-                error: ThemeColors.primaryRed,
-                background: Colors.white,
-              ),
-              textTheme: const TextTheme(
-                bodyText2: ThemeFonts.p1,
-              ),
+            textTheme: const TextTheme(
+              bodyText2: ThemeFonts.p1,
             ),
-            home: const OnBoarding(),
           ),
+          home: const OnBoarding(),
         );
       }),
     );
@@ -94,18 +85,9 @@ class _InitialScreenState extends State<InitialScreen> {
       await RepositoryProvider.of<Database>(context).init();
       final p = await LocalUser.getLocalProfile();
       if (p == null) {
-        Navigator.pushReplacement(context, NavigatorPage(
-          builder: (_) {
-            return const Login();
-          },
-        ));
+        OuterNavigator.instance.toLogin();
       } else {
-        BlocProvider.of<ProfileCubit>(context).onUserLoggedIn(p);
-        Navigator.pushReplacement(context, NavigatorPage(
-          builder: (_) {
-            return const MainScreen();
-          },
-        ));
+        OuterNavigator.instance.toMainApp(p);
       }
     });
   }
@@ -113,6 +95,85 @@ class _InitialScreenState extends State<InitialScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold();
+  }
+}
+
+class MainApp extends StatelessWidget {
+  final Profile profile;
+
+  const MainApp({
+    Key? key,
+    required this.profile,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => EventCubit(
+            RepositoryProvider.of<Database>(context),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => ProfileCubit(
+            RepositoryProvider.of<Database>(context),
+            profile: profile,
+          ),
+        ),
+      ],
+      child: Navigator(
+        onGenerateRoute: (_) {
+          return NavigatorPage(
+            builder: (_) => WillPopScope(
+              onWillPop: () async {
+                final nav = Navigator.of(context);
+                if (nav.canPop()) {
+                  nav.pop();
+                  return false;
+                }
+
+                return true;
+              },
+              child: const MainScreen(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class OuterNavigator {
+  static final _instance = OuterNavigator._();
+  static OuterNavigator get instance => _instance;
+
+  OuterNavigator._();
+
+  BuildContext? get context => _outerNavigatorKey.currentContext;
+
+  void toLogin() {
+    _handle(const Login());
+  }
+
+  void toMainApp(Profile withProfile) {
+    _handle(MainApp(profile: withProfile));
+  }
+
+  void _handle(Widget what) {
+    final state = _outerNavigatorKey.currentState;
+    if (state == null) {
+      throw Exception('Something is wrong because navigator state is null!');
+    }
+
+    state.pushAndRemoveUntil(
+      NavigatorPage(
+        builder: (ctx) {
+          return what;
+        },
+      ),
+      (route) => false,
+    );
   }
 }
 
@@ -131,3 +192,5 @@ class NavigatorPage<T> extends PageRouteBuilder<T> {
           },
         );
 }
+
+final _outerNavigatorKey = GlobalKey<NavigatorState>();
