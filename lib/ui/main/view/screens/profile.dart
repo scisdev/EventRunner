@@ -12,12 +12,17 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (ctx, state) => SafeArea(
-        child: Column(
-          children: [
-            Avatar(state.currentUser),
-            const SizedBox(height: 24),
-            Text(state.currentUser.displayName, style: ThemeFonts.h2),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              Avatar(state.currentUser),
+              const SizedBox(height: 24),
+              Text(state.currentUser.displayName, style: ThemeFonts.h2),
+              const SizedBox(height: 24),
+              const ProfileInfo(),
+            ],
+          ),
         ),
       ),
     );
@@ -46,11 +51,77 @@ class Avatar extends StatelessWidget {
   }
 }
 
-class ProfileInfo extends StatelessWidget {
+class ProfileInfo extends StatefulWidget {
   const ProfileInfo({Key? key}) : super(key: key);
 
   @override
+  State<ProfileInfo> createState() => _ProfileInfoState();
+}
+
+class _ProfileInfoState extends State<ProfileInfo> {
+  @override
+  void initState() {
+    super.initState();
+    BlocProvider.of<ProfileCubit>(context).loadInfo();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container();
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        if (state.status.isLoading) {
+          return const Center(
+            child: SizedBox.square(
+              dimension: 15,
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (state.profileInfo == null) return const SizedBox();
+
+        return Row(
+          children: [
+            Expanded(
+              child: Center(
+                child: item(
+                  'Мероприятия',
+                  state.profileInfo!.createdEvents.length,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: item(
+                  'Пройденных',
+                  state.profileInfo!.attendedEvents.length,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: item('Достижения', 123),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget item(String title, int count) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: ThemeFonts.h2,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          title,
+          style: ThemeFonts.s,
+        ),
+      ],
+    );
   }
 }

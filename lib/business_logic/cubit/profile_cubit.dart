@@ -7,11 +7,12 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   ProfileCubit(this._db, {required Profile profile})
       : super(ProfileState(
-          currentUser: profile,
-          profileInfo: null,
-        ));
+            currentUser: profile,
+            profileInfo: null,
+            status: ProfileStateStatus.done));
 
   void loadInfo({bool reload = false}) async {
+    if (state.status.isLoading) return;
     if (!reload && state.profileInfo != null) return;
 
     try {
@@ -26,6 +27,7 @@ class ProfileCubit extends Cubit<ProfileState> {
             createdEvents: events
                 .where((e) => e.creatorId == state.currentUser.id)
                 .toList(growable: false),
+            achievements: [], //todo
           ),
         ),
       );

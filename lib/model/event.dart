@@ -4,6 +4,7 @@ class Event {
   final int id;
   final int creatorId;
   final List<int> attendeeIds;
+  final List<int> achievementIds;
   final String name;
   final String desc;
   final String type;
@@ -17,6 +18,7 @@ class Event {
     required this.id,
     required this.creatorId,
     required this.attendeeIds,
+    required this.achievementIds,
     required this.name,
     required this.desc,
     required this.type,
@@ -34,6 +36,8 @@ class Event {
       desc: json['desc'],
       creatorId: json['creatorId'],
       attendeeIds: (json['attendeeIds'] as List).map((e) => e as int).toList(),
+      achievementIds:
+          (json['achievementIds'] as List).map((e) => e as int).toList(),
       duration: json['duration'],
       type: json['type'],
       posterUrl: json['posterUrl'],
@@ -50,6 +54,7 @@ class Event {
       'desc': desc,
       'creatorId': creatorId,
       'attendeeIds': attendeeIds,
+      'achievementIds': achievementIds,
       'duration': duration,
       'type': type,
       'posterUrl': posterUrl,
@@ -66,6 +71,7 @@ class Event {
       desc: desc,
       creatorId: creatorId,
       attendeeIds: attendeeIds,
+      achievementIds: achievementIds,
       type: type,
       duration: duration,
       startTime: startTime,

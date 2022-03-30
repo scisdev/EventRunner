@@ -9,6 +9,7 @@ class Database {
 
     final profiles = sp.getString('profiles');
     final events = sp.getString('events');
+    final achievements = sp.getString('achs');
 
     if (profiles == null) {
       await sp.setString(
@@ -20,6 +21,13 @@ class Database {
     if (events == null) {
       await sp.setString(
         'events',
+        jsonEncode(DefaultEventList.data.map((e) => e.toJson()).toList()),
+      );
+    }
+
+    if (achievements == null) {
+      await sp.setString(
+        'achs',
         jsonEncode(DefaultEventList.data.map((e) => e.toJson()).toList()),
       );
     }
@@ -153,6 +161,7 @@ class DefaultEventList {
         duration: '~ 60 минут',
         creatorId: 1,
         attendeeIds: [],
+        achievementIds: [],
         desc: 'Бежим марафон',
         posterUrl:
             'https://s3-alpha-sig.figma.com/img/cae3/c133/2d065694ff000487e091d9f0383817cf?Expires=1649030400&Signature=UOVHUXWw659oxBiXz96Ha6k2f3yE~djxkOhyb-ePbJg7uC~z592uTuoe0Fx~OM3t2ISK52cBlr3qQH6eQraAyr8rzCJ06TnGy1h8-AJcDVtX2x2go1hkS35bCHBe6vKSo7P7ebCkfjO9JwdYSVIG0GBdXx-Y0iJ2d2Uma87nWIT20cWqOvfUxFOxBXH4dPVHM4mqLI75Cb5gno7ERAbuG5DCpgOecB0M1eSKhwdDZNx7dBuYFDhqC88CgfYpLTQVqsqZUBsA4ClnhmNkDEzOiXKAgcdMMc-PDGepw1vaj~-baAdOHJQOl~lPMVbK3126NL2YNdBU9l~nXr8rrvULkg__&Key-Pair-Id=APKAINTVSUGEWH5XD5UA',
@@ -167,6 +176,7 @@ class DefaultEventList {
         duration: '~ 45 минут',
         creatorId: 2,
         attendeeIds: [],
+        achievementIds: [],
         desc: 'Ищем предметы',
         posterUrl:
             'https://s3-alpha-sig.figma.com/img/8712/af32/f805ed1cbcc8f92e37a47d4c4e2c38e8?Expires=1649030400&Signature=HKgVbFn76xne6pp6Y-7XwoHCLNZkY4hSc769TJEEMcYuKCG-L6YonzRn5ZSQFnpJFjit3GNa88wy5YQFKwUd785cwbPbdx3eTo4UtF0pcPQwtHViKTr6-l0fK73cpWHLnFzSYeGwlBlbOmovH543zhVMwI32m7UON-V4qsr7yvW358RDOB7Lnzdy78xZwB4TJRGHMuJxpT2Iw8Ev4Y2Dbqjno7weygkkrnnpme~Yr1JYOxMpQFSdKlMMuVnX2rZwuV5VqqvKo1JKAr7jdmTTL0qHSAKSj0G1HrOqeDBo~WRpnUa8ihNquKWa5FpBQ2Q79gGgY1mqTWNcsa6xeCUl5A__&Key-Pair-Id=APKAINTVSUGEWH5XD5UA',
@@ -181,6 +191,7 @@ class DefaultEventList {
         duration: '> 60 минут',
         creatorId: 3,
         attendeeIds: [],
+        achievementIds: [],
         desc: 'Слушаем поп-панк местного разлива и бухаем. Этож панк!',
         posterUrl: 'https://vpodryad.ru/upload/000/u1/1/6/60b57c1c.jpg',
         qrUsage: QrUsage.onlyIn,
@@ -194,6 +205,7 @@ class DefaultEventList {
         duration: '~45 минут',
         creatorId: 4,
         attendeeIds: [],
+        achievementIds: [],
         desc:
             'Показываем на примере конкретных стран, зачем нужно менять президентов',
         posterUrl:

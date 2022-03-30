@@ -108,37 +108,38 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => EventCubit(
-            RepositoryProvider.of<Database>(context),
-          ),
-        ),
-        BlocProvider(
-          create: (_) => ProfileCubit(
-            RepositoryProvider.of<Database>(context),
-            profile: profile,
-          ),
-        ),
-      ],
-      child: Navigator(
-        onGenerateRoute: (_) {
-          return NavigatorPage(
-            builder: (_) => WillPopScope(
-              onWillPop: () async {
-                final nav = Navigator.of(context);
-                if (nav.canPop()) {
-                  nav.pop();
-                  return false;
-                }
+    return WillPopScope(
+      onWillPop: () async {
+        final nav = _innerNavigatorKey.currentState!;
+        if (nav.canPop()) {
+          nav.pop();
+          return false;
+        }
 
-                return true;
-              },
-              child: const MainScreen(),
+        return true;
+      },
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => EventCubit(
+              RepositoryProvider.of<Database>(context),
             ),
-          );
-        },
+          ),
+          BlocProvider(
+            create: (_) => ProfileCubit(
+              RepositoryProvider.of<Database>(context),
+              profile: profile,
+            ),
+          ),
+        ],
+        child: Navigator(
+          key: _innerNavigatorKey,
+          onGenerateRoute: (_) {
+            return NavigatorPage(
+              builder: (_) => const MainScreen(),
+            );
+          },
+        ),
       ),
     );
   }
@@ -194,3 +195,4 @@ class NavigatorPage<T> extends PageRouteBuilder<T> {
 }
 
 final _outerNavigatorKey = GlobalKey<NavigatorState>();
+final _innerNavigatorKey = GlobalKey<NavigatorState>();
