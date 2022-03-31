@@ -16,6 +16,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (!reload && state.profileInfo != null) return;
 
     try {
+      await Future.delayed(Duration(seconds: 2));
       final events = await _db.getEvents();
 
       emit(

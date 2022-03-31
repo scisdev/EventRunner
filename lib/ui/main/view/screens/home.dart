@@ -1,6 +1,6 @@
 import 'package:event_runner/business_logic/cubit/cubit.dart';
 import 'package:event_runner/model/model.dart' hide EventState;
-import 'package:event_runner/ui/main/widgets/widgets.dart';
+import 'package:event_runner/ui/main/view/widgets/event_feed_generation.dart';
 import 'package:event_runner/ui/widgets/widgets.dart';
 import 'package:event_runner/util/theme.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
-    BlocProvider.of<EventCubit>(context).load();
+    final b = BlocProvider.of<EventCubit>(context);
+    if (b.state.events.isEmpty) {
+      b.load();
+    }
+
     super.initState();
   }
 
@@ -173,24 +177,8 @@ class Feed extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 23),
+      ...EventFeedGeneration.generate(events),
     ];
-
-    for (int i = 0; i < events.length; i = i + 2) {
-      if (i + 1 < events.length) {
-        res.add(
-          TwoRow(
-            one: events[i],
-            two: events[i + 1],
-          ),
-        );
-      } else {
-        res.add(
-          OneRow(
-            one: events[i],
-          ),
-        );
-      }
-    }
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 450),
@@ -202,45 +190,6 @@ class Feed extends StatelessWidget {
           child: Column(children: res),
         ),
       ),
-    );
-  }
-}
-
-class TwoRow extends StatelessWidget {
-  final Event one;
-  final Event two;
-
-  const TwoRow({
-    Key? key,
-    required this.one,
-    required this.two,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: EventEntry(one)),
-        const SizedBox(width: 26),
-        Expanded(child: EventEntry(two)),
-      ],
-    );
-  }
-}
-
-class OneRow extends StatelessWidget {
-  final Event one;
-
-  const OneRow({Key? key, required this.one}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: EventEntry(one)),
-        const SizedBox(width: 26),
-        const Spacer(),
-      ],
     );
   }
 }

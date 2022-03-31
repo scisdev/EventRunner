@@ -157,7 +157,8 @@ class DefaultEventList {
       Event(
         id: 1,
         type: 'Спорт',
-        name: 'Марафон',
+        name:
+            'Марафон, но название очень длинное, поэтому на одну строчку не поместится',
         duration: '~ 60 минут',
         creatorId: 1,
         attendeeIds: [],

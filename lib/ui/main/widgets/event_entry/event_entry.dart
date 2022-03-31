@@ -37,6 +37,8 @@ class EventEntry extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 event.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: ThemeFonts.h2,
               ),
             ),
@@ -44,7 +46,7 @@ class EventEntry extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                '${event.type} • ${event.duration}',
+                '${event.type}   •   ${event.duration}',
                 style: ThemeFonts.s.copyWith(
                   color: ThemeColors.secondaryText,
                 ),
@@ -105,6 +107,8 @@ class EventEntry extends StatelessWidget {
         Expanded(
           child: Text(
             profile.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: ThemeFonts.s,
           ),
         ),
