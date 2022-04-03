@@ -24,7 +24,7 @@ class CICubit extends Cubit<CreatorInfoState> {
 
   void getInfo() async {
     try {
-      emit(CISuccess(await _db.getProfileById(creatorId)));
+      emit(CISuccess((await _db.profiles.getByIds([creatorId]))[0]));
     } catch (_) {
       emit(CIFailure());
     }

@@ -31,6 +31,6 @@ class EventCubit extends Cubit<EventState> {
 
   Future<List<Event>> _getFromDatabase() async {
     await Future.delayed(const Duration(seconds: 2));
-    return await _db.getEvents();
+    return await _db.events.getAll();
   }
 }

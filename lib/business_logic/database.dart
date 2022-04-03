@@ -3,13 +3,59 @@ import 'dart:convert';
 import 'package:event_runner/model/model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+abstract class DB<T extends Persistable> {
+  final String tag;
+
+  DB(this.tag);
+
+  Future<void> _persistAll(List<T> els) async {
+    final sp = await SharedPreferences.getInstance();
+    await sp.setString(
+      tag,
+      jsonEncode(els.map((e) => e.toJson()).toList()),
+    );
+  }
+
+  Future<List<T>> getAll();
+
+  Future<List<T>> getByIds(List<int> ids) async {
+    return (await getAll()).where((e) => ids.contains(e.id)).toList();
+  }
+
+  Future<void> persistNew(T el) async {
+    final profiles = await getAll();
+    await _persistAll(
+      [...profiles, el.withId(profiles[profiles.length].id + 1) as T],
+    );
+  }
+
+  Future<void> update(T el) async {
+    final els = await getAll();
+    final ind = els.indexWhere((e) => e.id == el.id);
+    if (ind == -1) {
+      throw NoSuchElementFoundException();
+    }
+    els[ind] = el;
+    await _persistAll(els);
+  }
+
+  Future<void> deleteByIds(List<int> ids) async {
+    await _persistAll(
+      List.of(await getAll())..removeWhere((e) => ids.contains(e.id)),
+    );
+  }
+}
+
 class Database {
   Future<void> init() async {
     final sp = await SharedPreferences.getInstance();
 
     final profiles = sp.getString('profiles');
     final events = sp.getString('events');
+    final qrs = sp.getString('qr');
     final achievements = sp.getString('achs');
+    final achievementXowner = sp.getString('axo');
+    final attendeeXevent = sp.getString('axe');
 
     if (profiles == null) {
       await sp.setString(
@@ -25,84 +71,112 @@ class Database {
       );
     }
 
+    if (qrs == null) {
+      await sp.setString(
+        'qr',
+        jsonEncode(DefaultQrList.data.map((e) => e.toJson()).toList()),
+      );
+    }
+
     if (achievements == null) {
       await sp.setString(
         'achs',
-        jsonEncode(DefaultEventList.data.map((e) => e.toJson()).toList()),
+        jsonEncode(DefaultAchievementList.data.map((e) => e.toJson()).toList()),
+      );
+    }
+
+    if (achievementXowner == null) {
+      await sp.setString(
+        'axo',
+        jsonEncode([]),
+      );
+    }
+
+    if (attendeeXevent == null) {
+      await sp.setString(
+        'axe',
+        jsonEncode([]),
       );
     }
   }
 
-  Future<void> _persistEvents(List<Event> events) async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString(
-      'events',
-      jsonEncode(events.map((e) => e.toJson()).toList()),
-    );
-  }
+  final events = EventDB();
+  final profiles = ProfileDB();
+  final qrs = QrDB();
+  final achievements = AchievementDB();
+  final achievementXowner = AchievementXOwnerDB();
+  final attendeeXevent = AttendeeXEventDB();
+}
 
-  Future<void> _persistProfiles(List<Profile> profiles) async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString(
-      'profiles',
-      jsonEncode(profiles.map((e) => e.toJson()).toList()),
-    );
-  }
+class EventDB extends DB<Event> {
+  EventDB() : super('events');
 
-  Future<List<Event>> getEvents() async {
+  @override
+  Future<List<Event>> getAll() async {
     final sp = await SharedPreferences.getInstance();
-    return (jsonDecode(sp.getString('events')!) as List)
+    return (jsonDecode(sp.getString(tag)!) as List)
         .map((e) => Event.fromJson(e))
         .toList(growable: false);
   }
+}
 
-  Future<Event> getEventById(int id) async {
-    return (await getEvents()).firstWhere((e) => e.id == id);
-  }
+class ProfileDB extends DB<Profile> {
+  ProfileDB() : super('profiles');
 
-  Future<List<Profile>> getProfiles() async {
+  @override
+  Future<List<Profile>> getAll() async {
     final sp = await SharedPreferences.getInstance();
-    return (jsonDecode(sp.getString('profiles')!) as List)
+    return (jsonDecode(sp.getString(tag)!) as List)
         .map((e) => Profile.fromJson(e))
         .toList(growable: false);
   }
+}
 
-  Future<Profile> getProfileById(int id) async {
-    return (await getProfiles()).firstWhere((p) => p.id == id);
+class QrDB extends DB<Qr> {
+  QrDB() : super('qr');
+
+  @override
+  Future<List<Qr>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => Qr.fromJson(e))
+        .toList(growable: false);
   }
+}
 
-  Future<void> persistNewEvent(Event event) async {
-    final events = await getEvents();
-    await _persistEvents(
-      [...events, event.withId(events[events.length].id + 1)],
-    );
+class AchievementDB extends DB<Achievement> {
+  AchievementDB() : super('achs');
+
+  @override
+  Future<List<Achievement>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => Achievement.fromJson(e))
+        .toList(growable: false);
   }
+}
 
-  Future<void> persistNewProfile(Profile profile) async {
-    final profiles = await getProfiles();
-    await _persistProfiles(
-      [...profiles, profile.withId(profiles[profiles.length].id + 1)],
-    );
+class AchievementXOwnerDB extends DB<AchievementXOwner> {
+  AchievementXOwnerDB() : super('axo');
+
+  @override
+  Future<List<AchievementXOwner>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => AchievementXOwner.fromJson(e))
+        .toList(growable: false);
   }
+}
 
-  Future<void> updateEvent(Event event) async {
-    final events = await getEvents();
-    final ind = events.indexWhere((e) => e.id == event.id);
-    if (ind == -1) {
-      throw NoSuchElementFoundException();
-    }
-    events[ind] = event;
-    await _persistEvents(events);
-  }
+class AttendeeXEventDB extends DB<AttendeeXEvent> {
+  AttendeeXEventDB() : super('axe');
 
-  Future<void> updateProfile(Profile profile) async {
-    final profiles = await getProfiles();
-    final ind = profiles.indexWhere((e) => e.id == profile.id);
-    if (ind == -1) {
-      throw NoSuchElementFoundException();
-    }
-    profiles[ind] = profile;
-    await _persistProfiles(profiles);
+  @override
+  Future<List<AttendeeXEvent>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => AttendeeXEvent.fromJson(e))
+        .toList(growable: false);
   }
 }
 
@@ -161,12 +235,10 @@ class DefaultEventList {
             'Марафон, но название очень длинное, поэтому на одну строчку не поместится',
         duration: '~ 60 минут',
         creatorId: 1,
-        attendeeIds: [],
-        achievementIds: [],
         desc: 'Бежим марафон',
         posterUrl:
             'https://s3-alpha-sig.figma.com/img/cae3/c133/2d065694ff000487e091d9f0383817cf?Expires=1649030400&Signature=UOVHUXWw659oxBiXz96Ha6k2f3yE~djxkOhyb-ePbJg7uC~z592uTuoe0Fx~OM3t2ISK52cBlr3qQH6eQraAyr8rzCJ06TnGy1h8-AJcDVtX2x2go1hkS35bCHBe6vKSo7P7ebCkfjO9JwdYSVIG0GBdXx-Y0iJ2d2Uma87nWIT20cWqOvfUxFOxBXH4dPVHM4mqLI75Cb5gno7ERAbuG5DCpgOecB0M1eSKhwdDZNx7dBuYFDhqC88CgfYpLTQVqsqZUBsA4ClnhmNkDEzOiXKAgcdMMc-PDGepw1vaj~-baAdOHJQOl~lPMVbK3126NL2YNdBU9l~nXr8rrvULkg__&Key-Pair-Id=APKAINTVSUGEWH5XD5UA',
-        qrUsage: QrUsage.onlyIn,
+        qrUsage: QrUsage.everyStep,
         startTime: DateTime(2022, 1, 10),
         state: EventState.planned,
       ),
@@ -176,12 +248,10 @@ class DefaultEventList {
         name: 'Поиск предметов',
         duration: '~ 45 минут',
         creatorId: 2,
-        attendeeIds: [],
-        achievementIds: [],
         desc: 'Ищем предметы',
         posterUrl:
             'https://s3-alpha-sig.figma.com/img/8712/af32/f805ed1cbcc8f92e37a47d4c4e2c38e8?Expires=1649030400&Signature=HKgVbFn76xne6pp6Y-7XwoHCLNZkY4hSc769TJEEMcYuKCG-L6YonzRn5ZSQFnpJFjit3GNa88wy5YQFKwUd785cwbPbdx3eTo4UtF0pcPQwtHViKTr6-l0fK73cpWHLnFzSYeGwlBlbOmovH543zhVMwI32m7UON-V4qsr7yvW358RDOB7Lnzdy78xZwB4TJRGHMuJxpT2Iw8Ev4Y2Dbqjno7weygkkrnnpme~Yr1JYOxMpQFSdKlMMuVnX2rZwuV5VqqvKo1JKAr7jdmTTL0qHSAKSj0G1HrOqeDBo~WRpnUa8ihNquKWa5FpBQ2Q79gGgY1mqTWNcsa6xeCUl5A__&Key-Pair-Id=APKAINTVSUGEWH5XD5UA',
-        qrUsage: QrUsage.onlyIn,
+        qrUsage: QrUsage.achievements,
         startTime: DateTime(2022, 1, 10),
         state: EventState.planned,
       ),
@@ -191,8 +261,6 @@ class DefaultEventList {
         name: 'Концерт местной панк-группы',
         duration: '> 60 минут',
         creatorId: 3,
-        attendeeIds: [],
-        achievementIds: [],
         desc: 'Слушаем поп-панк местного разлива и бухаем. Этож панк!',
         posterUrl: 'https://vpodryad.ru/upload/000/u1/1/6/60b57c1c.jpg',
         qrUsage: QrUsage.onlyIn,
@@ -205,15 +273,113 @@ class DefaultEventList {
         name: 'Обсуждения, зачем нужна сменяемость власти',
         duration: '~45 минут',
         creatorId: 4,
-        attendeeIds: [],
-        achievementIds: [],
         desc:
             'Показываем на примере конкретных стран, зачем нужно менять президентов',
         posterUrl:
             'https://www.idea.int/sites/default/files/Initiatives/2018-Theme-Money-in-Politics.png',
-        qrUsage: QrUsage.onlyIn,
+        qrUsage: QrUsage.inAndOut,
         startTime: DateTime(2022, 1, 10),
         state: EventState.planned,
+      ),
+    ];
+  }
+}
+
+class DefaultStepList {
+  static List<EventStep> get data {
+    return [
+      EventStep(
+        id: 1,
+        eventId: 1,
+        name: 'Чекпоинт 1',
+        desc: 'Так держать!',
+      ),
+      EventStep(
+        id: 2,
+        eventId: 1,
+        name: 'Чекпоинт 2',
+        desc: 'Полнути пройдено!',
+      ),
+      EventStep(
+        id: 3,
+        eventId: 1,
+        name: 'Чекпоинт 3',
+        desc: 'Почти всё!',
+      ),
+      EventStep(
+        id: 4,
+        eventId: 1,
+        name: 'Чекпоинт 4',
+        desc: 'Ура!',
+      ),
+    ];
+  }
+}
+
+class DefaultQrList {
+  static List<Qr> get data {
+    return [
+      EntryQr(id: 1, eventId: 3, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
+      EntryQr(id: 2, eventId: 4, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
+      ExitQr(id: 3, eventId: 4, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
+      StepQr(id: 4, stepId: 1, eventId: 1, timestamp: DateTime(2020, 01, 01)),
+      StepQr(id: 5, stepId: 2, eventId: 1, timestamp: DateTime(2020, 01, 01)),
+      StepQr(id: 6, stepId: 3, eventId: 1, timestamp: DateTime(2020, 01, 01)),
+      StepQr(id: 7, stepId: 4, eventId: 1, timestamp: DateTime(2020, 01, 01)),
+      AchievementQr(
+        id: 8,
+        achId: 1,
+        eventId: 2,
+        timestamp: DateTime(2022, 01, 01),
+      ),
+      AchievementQr(
+        id: 8,
+        achId: 2,
+        eventId: 2,
+        timestamp: DateTime(2022, 01, 01),
+      ),
+      AchievementQr(
+        id: 10,
+        achId: 2,
+        eventId: 2,
+        timestamp: DateTime(2022, 01, 01),
+      ),
+      AchievementQr(
+        id: 11,
+        achId: 2,
+        eventId: 2,
+        timestamp: DateTime(2022, 01, 01),
+      ),
+    ];
+  }
+}
+
+class DefaultAchievementList {
+  static List<Achievement> get data {
+    return [
+      Achievement(
+        id: 1,
+        eventId: 2,
+        name: 'Белочка',
+        desc: 'Вы нашли тайную белочку!',
+      ),
+      Achievement(
+        id: 2,
+        eventId: 2,
+        name: 'Тайная записка',
+        desc: 'Вы схватили записку!',
+      ),
+      Achievement(
+        id: 3,
+        eventId: 2,
+        name: 'Доп. предмет',
+        desc: 'Это поможет чуть позже...',
+      ),
+      Achievement(
+        id: 4,
+        eventId: 2,
+        name: 'Шорткат',
+        desc: 'У самых глазастых преимущество!',
       ),
     ];
   }

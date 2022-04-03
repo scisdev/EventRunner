@@ -164,7 +164,10 @@ class _ProfileInfoState extends State<ProfileInfo> {
             ),
             Expanded(
               child: Center(
-                child: item('Достижения', 123),
+                child: item(
+                  'Достижения',
+                  state.profileInfo!.achievements.length,
+                ),
               ),
             ),
           ],

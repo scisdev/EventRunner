@@ -1,17 +1,18 @@
-class Profile {
-  final int id;
+import 'package:event_runner/model/persistable.dart';
+
+class Profile extends Persistable {
   final String email;
   final String passwordHash;
   final String displayName;
   final String avatarUrl;
 
   Profile({
-    required this.id,
+    required int id,
     required this.email,
     required this.passwordHash,
     required this.displayName,
     required this.avatarUrl,
-  });
+  }) : super(id);
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
@@ -23,6 +24,7 @@ class Profile {
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -33,6 +35,7 @@ class Profile {
     };
   }
 
+  @override
   Profile withId(int id) {
     return Profile(
       id: id,

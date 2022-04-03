@@ -9,29 +9,40 @@ class ProfileCubit extends Cubit<ProfileState> {
       : super(ProfileState(
             currentUser: profile,
             profileInfo: null,
-            status: ProfileStateStatus.done));
+            status: ProfileStateStatus.init));
 
   void loadInfo({bool reload = false}) async {
     if (state.status.isLoading) return;
     if (!reload && state.profileInfo != null) return;
 
-    try {
-      await Future.delayed(Duration(seconds: 2));
-      final events = await _db.getEvents();
+    emit(state.withStatus(ProfileStateStatus.loading));
 
+    try {
       emit(
-        state.withInfo(
-          ProfileInfo(
-            attendedEvents: events
-                .where((e) => e.attendeeIds.contains(state.currentUser.id))
-                .toList(growable: false),
-            createdEvents: events
-                .where((e) => e.creatorId == state.currentUser.id)
-                .toList(growable: false),
-            achievements: [], //todo
-          ),
-        ),
+        state
+            .withInfo(ProfileInfo(
+              attendedEvents: await _db.events.getByIds(
+                (await _db.attendeeXevent.getAll())
+                    .where((e) => e.profileId == state.currentUser.id)
+                    .map((e) => e.eventId)
+                    .toList(),
+              ),
+              createdEvents: (await _db.events.getAll())
+                  .where((e) => e.creatorId == state.currentUser.id)
+                  .toList(),
+              achievements: await _db.achievements.getByIds(
+                (await _db.achievementXowner.getAll())
+                    .where((e) => e.ownerId == state.currentUser.id)
+                    .map((e) => e.achId)
+                    .toList(),
+              ),
+            ))
+            .withStatus(
+              ProfileStateStatus.success,
+            ),
       );
-    } catch (_) {}
+    } catch (_) {
+      emit(state.withStatus(ProfileStateStatus.failure));
+    }
   }
 }

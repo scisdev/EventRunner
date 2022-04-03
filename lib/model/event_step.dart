@@ -1,16 +1,25 @@
 import 'package:event_runner/model/model.dart';
 
-class Achievement extends Persistable {
+class EventStep extends Persistable {
   final int eventId;
   final String name;
   final String desc;
 
-  Achievement({
+  EventStep({
     required int id,
     required this.eventId,
     required this.name,
     required this.desc,
   }) : super(id);
+
+  factory EventStep.fromJson(Map<String, dynamic> json) {
+    return EventStep(
+      id: json['id'],
+      eventId: json['eventId'],
+      name: json['name'],
+      desc: json['desc'],
+    );
+  }
 
   @override
   Map<String, dynamic> toJson() {
@@ -22,18 +31,9 @@ class Achievement extends Persistable {
     };
   }
 
-  factory Achievement.fromJson(Map<String, dynamic> json) {
-    return Achievement(
-      id: json['id'],
-      eventId: json['eventId'],
-      name: json['name'],
-      desc: json['desc'],
-    );
-  }
-
   @override
   Persistable withId(int id) {
-    return Achievement(
+    return EventStep(
       id: id,
       eventId: eventId,
       name: name,

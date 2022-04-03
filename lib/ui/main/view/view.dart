@@ -1,3 +1,4 @@
+import 'package:event_runner/ui/add_event/add_event.dart';
 import 'package:event_runner/ui/main/view/screens/home.dart';
 import 'package:event_runner/ui/main/view/screens/profile.dart';
 import 'package:event_runner/util/theme.dart';
@@ -53,8 +54,12 @@ class _MainScreenState extends State<MainScreen> {
   Widget _selectChild() {
     if (_selectedScreen == 0) {
       return const HomeScreen();
-    } else {
+    } else if (_selectedScreen == 1) {
+      return const CreateEventLayout();
+    } else if (_selectedScreen == 4) {
       return const ProfileScreen();
+    } else {
+      return const SizedBox();
     }
   }
 

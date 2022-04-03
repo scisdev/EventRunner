@@ -74,4 +74,6 @@ class ThemeDrawable {
   static const profile = 'assets/icon_profile.svg';
 
   static const chevronLeft = 'assets/icon_chevron_left.svg';
+
+  static const addPhoto = 'assets/add_photo.svg';
 }

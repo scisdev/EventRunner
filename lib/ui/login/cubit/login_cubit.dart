@@ -40,7 +40,7 @@ class LoginCubit extends Cubit<LoginState> {
   Future<Profile> getProfileFromDB(String mail, String passHash) async {
     await Future.delayed(const Duration(seconds: 2)); // emulate http
 
-    final p = await _db.getProfiles();
+    final p = await _db.profiles.getAll();
     final i = p.indexWhere(
       (p) => p.email == mail && p.passwordHash == passHash,
     );
