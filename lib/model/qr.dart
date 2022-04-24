@@ -3,12 +3,10 @@ import 'dart:convert';
 import 'package:event_runner/model/persistable.dart';
 
 abstract class Qr extends Persistable {
-  final DateTime timestamp;
   final int eventId;
 
   Qr({
-    required int id,
-    required this.timestamp,
+    int? id,
     required this.eventId,
   }) : super(id);
 
@@ -20,7 +18,6 @@ abstract class Qr extends Persistable {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'timestamp': timestamp.toIso8601String(),
       'type': type,
     }..addAll(_additional());
   }
@@ -47,10 +44,9 @@ abstract class Qr extends Persistable {
 
 class EntryQr extends Qr {
   EntryQr({
-    required int id,
+    int? id,
     required int eventId,
-    required DateTime timestamp,
-  }) : super(id: id, timestamp: timestamp, eventId: eventId);
+  }) : super(id: id, eventId: eventId);
 
   @override
   Map<String, dynamic> _additional() {
@@ -67,14 +63,12 @@ class EntryQr extends Qr {
     return EntryQr(
       id: id,
       eventId: eventId,
-      timestamp: timestamp,
     );
   }
 
   factory EntryQr.fromJson(Map<String, dynamic> json) {
     return EntryQr(
       id: json['id'],
-      timestamp: json['timestamp'],
       eventId: json['eventId'],
     );
   }
@@ -82,12 +76,10 @@ class EntryQr extends Qr {
 
 class ExitQr extends Qr {
   ExitQr({
-    required int id,
+    int? id,
     required int eventId,
-    required DateTime timestamp,
   }) : super(
           id: id,
-          timestamp: timestamp,
           eventId: eventId,
         );
 
@@ -106,14 +98,12 @@ class ExitQr extends Qr {
     return ExitQr(
       id: id,
       eventId: eventId,
-      timestamp: timestamp,
     );
   }
 
   factory ExitQr.fromJson(Map<String, dynamic> json) {
     return ExitQr(
       id: json['id'],
-      timestamp: json['timestamp'],
       eventId: json['eventId'],
     );
   }
@@ -123,13 +113,11 @@ class StepQr extends Qr {
   final int stepId;
 
   StepQr({
-    required int id,
+    int? id,
     required this.stepId,
     required int eventId,
-    required DateTime timestamp,
   }) : super(
           id: id,
-          timestamp: timestamp,
           eventId: eventId,
         );
 
@@ -149,14 +137,12 @@ class StepQr extends Qr {
       id: id,
       eventId: eventId,
       stepId: stepId,
-      timestamp: timestamp,
     );
   }
 
   factory StepQr.fromJson(Map<String, dynamic> json) {
     return StepQr(
       id: json['id'],
-      timestamp: json['timestamp'],
       eventId: json['eventId'],
       stepId: json['stepId'],
     );
@@ -167,13 +153,11 @@ class AchievementQr extends Qr {
   final int achId;
 
   AchievementQr({
-    required int id,
+    int? id,
     required this.achId,
     required int eventId,
-    required DateTime timestamp,
   }) : super(
           id: id,
-          timestamp: timestamp,
           eventId: eventId,
         );
 
@@ -193,7 +177,6 @@ class AchievementQr extends Qr {
       id: id,
       achId: achId,
       eventId: eventId,
-      timestamp: timestamp,
     );
   }
 
@@ -201,7 +184,6 @@ class AchievementQr extends Qr {
     return AchievementQr(
       id: json['id'],
       eventId: json['eventId'],
-      timestamp: json['timestamp'],
       achId: json['achId'],
     );
   }

@@ -1,5 +1,5 @@
 abstract class Persistable {
-  final int id;
+  final int? id;
 
   Persistable(this.id);
 

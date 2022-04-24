@@ -8,6 +8,7 @@ class ThemeFonts {
     color: ThemeColors.mainText,
     fontSize: 22,
     height: 1.45,
+    leadingDistribution: TextLeadingDistribution.even,
   );
 
   static const h2 = TextStyle(
@@ -15,6 +16,7 @@ class ThemeFonts {
     color: ThemeColors.mainText,
     fontSize: 17,
     height: 1.58,
+    leadingDistribution: TextLeadingDistribution.even,
   );
 
   static const h3 = TextStyle(
@@ -22,6 +24,7 @@ class ThemeFonts {
     height: 1.66,
     fontWeight: FontWeight.w700,
     color: Colors.white,
+    leadingDistribution: TextLeadingDistribution.even,
   );
 
   static const p1 = TextStyle(
@@ -37,6 +40,7 @@ class ThemeFonts {
     height: 1.66,
     fontWeight: FontWeight.w500,
     color: ThemeColors.secondaryText,
+    leadingDistribution: TextLeadingDistribution.even,
   );
 
   static const s = TextStyle(
@@ -62,6 +66,7 @@ class ThemeColors {
 
 class ThemeDrawable {
   static const onBoard = 'assets/onboard.png';
+  static const happyFace = 'assets/happy_face.png';
   static const googleIcon = 'assets/google_icon.svg';
   static const emailIcon = 'assets/email_icon.svg';
   static const passwordIcon = 'assets/password_icon.svg';
@@ -76,4 +81,6 @@ class ThemeDrawable {
   static const chevronLeft = 'assets/icon_chevron_left.svg';
 
   static const addPhoto = 'assets/add_photo.svg';
+  static const stepIcon = 'assets/step_icon.svg';
+  static const closeIcon = 'assets/close_icon.svg';
 }

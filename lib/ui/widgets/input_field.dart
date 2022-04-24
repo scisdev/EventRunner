@@ -7,6 +7,9 @@ class InputField extends StatelessWidget {
   final Widget? postfix;
   final TextInputType keyboardType;
   final TextEditingController? controller;
+  final void Function(String)? onChanged;
+  final String? Function(String?)? validator;
+  final TextCapitalization textCapitalization;
   final bool obscureText;
 
   const InputField({
@@ -15,24 +18,25 @@ class InputField extends StatelessWidget {
     this.prefix,
     this.postfix,
     this.controller,
+    this.onChanged,
+    this.validator,
     this.keyboardType = TextInputType.text,
+    this.textCapitalization = TextCapitalization.sentences,
     this.obscureText = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      width: double.infinity,
-      child: TextField(
-        controller: controller,
-        decoration: getDecoration(),
-        obscureText: obscureText,
-        style: ThemeFonts.p2.copyWith(
-          color: ThemeColors.mainText,
-          leadingDistribution: TextLeadingDistribution.even,
-        ),
+    return TextFormField(
+      validator: validator,
+      controller: controller,
+      decoration: getDecoration(),
+      onChanged: onChanged,
+      obscureText: obscureText,
+      style: ThemeFonts.p2.copyWith(
+        color: ThemeColors.mainText,
       ),
+      textCapitalization: textCapitalization,
     );
   }
 
@@ -40,6 +44,7 @@ class InputField extends StatelessWidget {
     return InputDecoration(
       errorStyle: const TextStyle(
         fontSize: 0,
+        height: 0,
       ),
       contentPadding: postfix == null
           ? const EdgeInsets.symmetric(
@@ -51,7 +56,6 @@ class InputField extends StatelessWidget {
       prefixIcon: prefix,
       hintStyle: ThemeFonts.p2.copyWith(
         color: ThemeColors.secondaryText,
-        leadingDistribution: TextLeadingDistribution.even,
       ),
       border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(

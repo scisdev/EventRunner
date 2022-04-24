@@ -1,5 +1,11 @@
 export '../database.dart';
-export 'event_cubit.dart';
-export 'event_state.dart';
-export 'profile_cubit.dart';
-export 'profile_state.dart';
+export 'add_event/cubit.dart';
+export 'add_event/state.dart';
+export 'gen_qrs/cubit.dart';
+export 'gen_qrs/state.dart';
+export 'get_events/cubit.dart';
+export 'get_events/state.dart';
+export 'get_qrs/cubit.dart';
+export 'get_qrs/state.dart';
+export 'profile/cubit.dart';
+export 'profile/state.dart';

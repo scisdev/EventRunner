@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final bool forceLoadData;
+  const HomeScreen({Key? key, this.forceLoadData = false}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     final b = BlocProvider.of<EventCubit>(context);
-    if (b.state.events.isEmpty) {
+    if (b.state.events.isEmpty || widget.forceLoadData) {
       b.load();
     }
 
@@ -144,9 +145,10 @@ class Feed extends StatelessWidget {
       final events = state.events;
       if (events.isNotEmpty) {
         if (state.filterCategory == null) {
-          return generate(state.events);
+          return generate(context, state.events);
         } else {
           return generate(
+            context,
             state.events
                 .where(
                   (e) => e.type == state.filterCategory,
@@ -166,7 +168,7 @@ class Feed extends StatelessWidget {
     });
   }
 
-  Widget generate(List<Event> events) {
+  Widget generate(BuildContext context, List<Event> events) {
     final res = <Widget>[
       const SizedBox(height: 23),
       Align(
@@ -185,9 +187,14 @@ class Feed extends StatelessWidget {
       child: Align(
         key: ValueKey(res.map((e) => e.hashCode.toString()).join()),
         alignment: Alignment.topCenter,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 16, bottom: 120),
-          child: Column(children: res),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            BlocProvider.of<EventCubit>(context).refresh();
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 16, bottom: 120),
+            child: Column(children: res),
+          ),
         ),
       ),
     );

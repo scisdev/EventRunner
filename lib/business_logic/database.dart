@@ -22,11 +22,23 @@ abstract class DB<T extends Persistable> {
     return (await getAll()).where((e) => ids.contains(e.id)).toList();
   }
 
-  Future<void> persistNew(T el) async {
-    final profiles = await getAll();
-    await _persistAll(
-      [...profiles, el.withId(profiles[profiles.length].id + 1) as T],
-    );
+  Future<T> persistNew(T el) async {
+    final els = await getAll();
+    final newEl = el.withId(els.length + 1);
+    await _persistAll([...els, newEl as T]);
+    return newEl;
+  }
+
+  Future<List<T>> persistBatch(List<T> els) async {
+    final existing = await getAll();
+    final ret = <T>[];
+    int count = 1;
+    for (final el in els) {
+      ret.add(el.withId(existing.length + count++) as T);
+    }
+    await _persistAll([...existing, ...ret]);
+
+    return ret;
   }
 
   Future<void> update(T el) async {
@@ -54,6 +66,9 @@ class Database {
     final events = sp.getString('events');
     final qrs = sp.getString('qr');
     final achievements = sp.getString('achs');
+    final steps = sp.getString('steps');
+
+    final stepXuser = sp.getString('sxu');
     final achievementXowner = sp.getString('axo');
     final attendeeXevent = sp.getString('axe');
 
@@ -85,6 +100,20 @@ class Database {
       );
     }
 
+    if (steps == null) {
+      await sp.setString(
+        'steps',
+        jsonEncode(DefaultStepList.data.map((e) => e.toJson()).toList()),
+      );
+    }
+
+    if (stepXuser == null) {
+      await sp.setString(
+        'sxu',
+        jsonEncode([]),
+      );
+    }
+
     if (achievementXowner == null) {
       await sp.setString(
         'axo',
@@ -104,6 +133,8 @@ class Database {
   final profiles = ProfileDB();
   final qrs = QrDB();
   final achievements = AchievementDB();
+  final steps = StepDB();
+  final stepXuser = StepXUserDB();
   final achievementXowner = AchievementXOwnerDB();
   final attendeeXevent = AttendeeXEventDB();
 }
@@ -152,6 +183,30 @@ class AchievementDB extends DB<Achievement> {
     final sp = await SharedPreferences.getInstance();
     return (jsonDecode(sp.getString(tag)!) as List)
         .map((e) => Achievement.fromJson(e))
+        .toList(growable: false);
+  }
+}
+
+class StepDB extends DB<EventStep> {
+  StepDB() : super('steps');
+
+  @override
+  Future<List<EventStep>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => EventStep.fromJson(e))
+        .toList(growable: false);
+  }
+}
+
+class StepXUserDB extends DB<StepXUser> {
+  StepXUserDB() : super('sxu');
+
+  @override
+  Future<List<StepXUser>> getAll() async {
+    final sp = await SharedPreferences.getInstance();
+    return (jsonDecode(sp.getString(tag)!) as List)
+        .map((e) => StepXUser.fromJson(e))
         .toList(growable: false);
   }
 }
@@ -292,25 +347,21 @@ class DefaultStepList {
         id: 1,
         eventId: 1,
         name: 'Чекпоинт 1',
-        desc: 'Так держать!',
       ),
       EventStep(
         id: 2,
         eventId: 1,
         name: 'Чекпоинт 2',
-        desc: 'Полнути пройдено!',
       ),
       EventStep(
         id: 3,
         eventId: 1,
         name: 'Чекпоинт 3',
-        desc: 'Почти всё!',
       ),
       EventStep(
         id: 4,
         eventId: 1,
         name: 'Чекпоинт 4',
-        desc: 'Ура!',
       ),
     ];
   }
@@ -319,37 +370,17 @@ class DefaultStepList {
 class DefaultQrList {
   static List<Qr> get data {
     return [
-      EntryQr(id: 1, eventId: 3, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
-      EntryQr(id: 2, eventId: 4, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
-      ExitQr(id: 3, eventId: 4, timestamp: DateTime(2020, 05, 05, 10, 20, 30)),
-      StepQr(id: 4, stepId: 1, eventId: 1, timestamp: DateTime(2020, 01, 01)),
-      StepQr(id: 5, stepId: 2, eventId: 1, timestamp: DateTime(2020, 01, 01)),
-      StepQr(id: 6, stepId: 3, eventId: 1, timestamp: DateTime(2020, 01, 01)),
-      StepQr(id: 7, stepId: 4, eventId: 1, timestamp: DateTime(2020, 01, 01)),
-      AchievementQr(
-        id: 8,
-        achId: 1,
-        eventId: 2,
-        timestamp: DateTime(2022, 01, 01),
-      ),
-      AchievementQr(
-        id: 8,
-        achId: 2,
-        eventId: 2,
-        timestamp: DateTime(2022, 01, 01),
-      ),
-      AchievementQr(
-        id: 10,
-        achId: 2,
-        eventId: 2,
-        timestamp: DateTime(2022, 01, 01),
-      ),
-      AchievementQr(
-        id: 11,
-        achId: 2,
-        eventId: 2,
-        timestamp: DateTime(2022, 01, 01),
-      ),
+      EntryQr(id: 1, eventId: 3),
+      EntryQr(id: 2, eventId: 4),
+      ExitQr(id: 3, eventId: 4),
+      StepQr(id: 4, stepId: 1, eventId: 1),
+      StepQr(id: 5, stepId: 2, eventId: 1),
+      StepQr(id: 6, stepId: 3, eventId: 1),
+      StepQr(id: 7, stepId: 4, eventId: 1),
+      AchievementQr(id: 8, achId: 1, eventId: 2),
+      AchievementQr(id: 8, achId: 2, eventId: 2),
+      AchievementQr(id: 10, achId: 2, eventId: 2),
+      AchievementQr(id: 11, achId: 2, eventId: 2),
     ];
   }
 }

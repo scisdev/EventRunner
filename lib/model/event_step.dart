@@ -3,13 +3,11 @@ import 'package:event_runner/model/model.dart';
 class EventStep extends Persistable {
   final int eventId;
   final String name;
-  final String desc;
 
   EventStep({
-    required int id,
+    int? id,
     required this.eventId,
     required this.name,
-    required this.desc,
   }) : super(id);
 
   factory EventStep.fromJson(Map<String, dynamic> json) {
@@ -17,7 +15,6 @@ class EventStep extends Persistable {
       id: json['id'],
       eventId: json['eventId'],
       name: json['name'],
-      desc: json['desc'],
     );
   }
 
@@ -27,7 +24,6 @@ class EventStep extends Persistable {
       'id': id,
       'eventId': eventId,
       'name': name,
-      'desc': desc,
     };
   }
 
@@ -37,7 +33,6 @@ class EventStep extends Persistable {
       id: id,
       eventId: eventId,
       name: name,
-      desc: desc,
     );
   }
 }

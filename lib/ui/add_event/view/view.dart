@@ -1,30 +1,76 @@
+import 'package:event_runner/business_logic/business_logic.dart'
+    hide EventState;
+import 'package:event_runner/main.dart';
+import 'package:event_runner/model/model.dart';
+import 'package:event_runner/ui/add_event/view/dialog.dart';
+import 'package:event_runner/ui/event_page/view/event_page.dart';
 import 'package:event_runner/ui/main/main.dart';
-import 'package:event_runner/ui/widgets/buttons.dart';
-import 'package:event_runner/ui/widgets/input_field.dart';
 import 'package:event_runner/util/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '1.dart';
+import '2.dart';
+import '3.dart';
+import '4.dart';
+
+class ElementNotFoundException with Exception {}
+
+class CreateEventPage extends StatelessWidget {
+  const CreateEventPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) {
+        return AddEventCubit(
+          AddEventApiDBImpl(
+            RepositoryProvider.of<Database>(context),
+          ),
+        );
+      },
+      child: const CreateEventLayout(),
+    );
+  }
+}
 
 class CreateEventLayout extends StatefulWidget {
   const CreateEventLayout({Key? key}) : super(key: key);
 
   @override
   State<CreateEventLayout> createState() => _CreateEventLayoutState();
+
+  static _CreateEventLayoutState of(BuildContext context) {
+    final res = context.findAncestorStateOfType<_CreateEventLayoutState>();
+    if (res == null) {
+      throw ElementNotFoundException();
+    }
+
+    return res;
+  }
 }
 
 class _CreateEventLayoutState extends State<CreateEventLayout>
     with SingleTickerProviderStateMixin {
-  late final TabController c;
+  late final TabController _c;
 
-  int page = 0;
+  String name = '';
+  String description = '';
+  String eventDuration = '';
+  String eventType = '';
+  QrUsage qrUsage = QrUsage.everyStep;
+  final List<String> steps = [];
+  final List<LocalAchievement> achs = <LocalAchievement>[];
+
+  int _page = 0;
 
   @override
   void initState() {
-    c = TabController(length: 4, vsync: this);
-    c.addListener(() {
-      if (c.index != page) {
+    _c = TabController(length: 4, vsync: this);
+    _c.addListener(() {
+      if (_c.index != _page) {
         setState(() {
-          page = c.index;
+          _page = _c.index;
         });
       }
     });
@@ -33,44 +79,137 @@ class _CreateEventLayoutState extends State<CreateEventLayout>
 
   @override
   void dispose() {
-    c.dispose();
+    _c.dispose();
     super.dispose();
+  }
+
+  Event createEvent() {
+    return Event(
+      creatorId: BlocProvider.of<ProfileCubit>(context).state.currentUser.id!,
+      name: name,
+      desc: description,
+      type: eventType,
+      duration: eventDuration,
+      startTime: DateTime.now().add(const Duration(days: 7)),
+      qrUsage: qrUsage,
+      posterUrl: '123',
+      state: EventState.planned,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppBar(page),
-            Expanded(
-              child: TabBarView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: c,
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: PageOne(),
+      body: BlocConsumer<AddEventCubit, AddEventState>(
+        listener: (ctx, state) {
+          if (state is AddEventSuccess) {
+            if (state.createdEvent.qrUsage == QrUsage.noQr) {
+              MainScreen.of(context).goToMainScreen(true);
+              return;
+            }
+
+            showDialog(
+              context: ctx,
+              builder: (ctx) {
+                return const AlertDialog(
+                  content: EventAddedDialog(),
+                  contentPadding: EdgeInsets.all(30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(24),
+                    ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: PageTwo(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: PageThree(),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: PageFour(),
-                  ),
+                );
+              },
+            ).then((res) {
+              if (res ?? false) {
+                MainScreen.of(context).goToProfile();
+                Navigator.of(context).push(
+                  NavigatorPage(builder: (_) {
+                    return EventPage(state.createdEvent, forceGenRqs: true);
+                  }),
+                );
+              } else {
+                MainScreen.of(context).goToMainScreen(true);
+              }
+            });
+          } else if (state is AddEventFailure) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text(
+                'Ошибка при создании мероприятия! Попытайтесь ещё раз!',
+              ),
+            ));
+          }
+        },
+        builder: (ctx, state) {
+          final main = body();
+          if (state is AddEventLoading) {
+            return AbsorbPointer(
+              absorbing: true,
+              child: Stack(
+                children: [
+                  Opacity(opacity: .5, child: main),
+                  const Center(child: CircularProgressIndicator()),
                 ],
               ),
-            ),
-          ],
-        ),
+            );
+          }
+
+          return main;
+        },
       ),
+    );
+  }
+
+  Widget body() {
+    return SafeArea(
+      child: Column(
+        children: [
+          AppBar(_page),
+          Expanded(
+            child: TabBarView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: _c,
+              children: const [
+                PageOne(),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: PageTwo(),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: PageThree(),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: PageFour(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void nextPage() {
+    if (_c.index > 2) return;
+
+    _c.animateTo(
+      _c.index + 1,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void prevPage() {
+    if (_c.index < 1) return;
+
+    _c.animateTo(
+      _c.index - 1,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
     );
   }
 }
@@ -89,274 +228,79 @@ class AppBar extends StatelessWidget {
         height: 60,
         child: Row(
           children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                MainScreen.of(context).selectScreen(0);
-              },
-              child: SizedBox(
-                height: double.infinity,
-                child: Center(
-                  child: Text(
-                    'Отмена',
-                    style: ThemeFonts.h2.copyWith(
-                      color: ThemeColors.primaryRed,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const Spacer(),
-            SizedBox(
-              height: double.infinity,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${page + 1}/',
-                    style: ThemeFonts.h2,
-                  ),
-                  Text(
-                    '4',
-                    style: ThemeFonts.h2.copyWith(
-                      color: ThemeColors.secondaryText,
-                    ),
-                  ),
-                ],
-              ),
-            )
+            Expanded(child: button(context)),
+            Expanded(child: counter()),
           ],
         ),
       ),
     );
   }
-}
 
-class PageOne extends StatefulWidget {
-  const PageOne({Key? key}) : super(key: key);
+  Widget button(BuildContext context) {
+    return SizedBox.expand(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 450),
+        child: GestureDetector(
+          key: ValueKey(page == 0),
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (page == 0) {
+              MainScreen.of(context).goToMainScreen(false);
+            } else {
+              CreateEventLayout.of(context).prevPage();
+            }
+          },
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              page == 0 ? 'Отмена' : 'Назад',
+              style: ThemeFonts.h2.copyWith(
+                color: ThemeColors.primaryRed,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-  @override
-  State<PageOne> createState() => _PageOneState();
-}
-
-class _PageOneState extends State<PageOne> {
-  double sliderValue = 3;
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget counter() {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 180,
-            child: SvgPicture.asset(
-              ThemeDrawable.addPhoto,
-              fit: BoxFit.fitWidth,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 450),
+            child: SizedBox(
+              key: ValueKey(page),
+              height: double.infinity,
+              child: Center(
+                child: Text(
+                  '${page + 1}/',
+                  style: ThemeFonts.h2,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 24),
           Text(
-            'Название мероприятия',
+            '4',
             style: ThemeFonts.h2.copyWith(
-              fontWeight: FontWeight.w500,
+              color: ThemeColors.secondaryText,
             ),
           ),
-          const SizedBox(height: 10),
-          const InputField(
-            hintText: 'Введите название мероприятия',
-          ),
-          const SizedBox(height: 24),
-          const Text('Описание', style: ThemeFonts.h2),
-          const SizedBox(height: 10),
-          const EventDescriptionInputField(),
-          const SizedBox(height: 24),
-          const Text('Время проведения (в минутах)', style: ThemeFonts.h2),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Text(
-                '<10',
-                style: ThemeFonts.h3.copyWith(
-                  color: ThemeColors.primary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '30',
-                style: ThemeFonts.h3.copyWith(
-                  color: ThemeColors.primary,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '>60',
-                style: ThemeFonts.h3.copyWith(
-                  color: ThemeColors.primary,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: sliderValue,
-            onChanged: (s) {
-              setState(() {
-                sliderValue = s;
-              });
-            },
-            min: 0,
-            max: 6,
-            divisions: 6,
-            activeColor: ThemeColors.primary,
-          ),
-          const SizedBox(height: 50),
-          AccentButton(
-            content: const Text('Далее'),
-            onTap: () {},
-          ),
-          const SizedBox(height: 150),
         ],
       ),
     );
   }
 }
 
-class PageTwo extends StatefulWidget {
-  const PageTwo({Key? key}) : super(key: key);
+class LocalAchievement {
+  final String name;
+  final String desc;
 
-  @override
-  _PageTwoState createState() => _PageTwoState();
-}
-
-class _PageTwoState extends State<PageTwo> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text('Two')),
-    );
-  }
-}
-
-class PageThree extends StatefulWidget {
-  const PageThree({Key? key}) : super(key: key);
-
-  @override
-  _PageThreeState createState() => _PageThreeState();
-}
-
-class _PageThreeState extends State<PageThree> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text("Three")),
-    );
-  }
-}
-
-class PageFour extends StatefulWidget {
-  const PageFour({Key? key}) : super(key: key);
-
-  @override
-  _PageFourState createState() => _PageFourState();
-}
-
-class _PageFourState extends State<PageFour> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: const Center(child: Text("Four")),
-    );
-  }
-}
-
-class EventDescriptionInputField extends StatelessWidget {
-  const EventDescriptionInputField({
-    Key? key,
-    this.controller,
-  }) : super(key: key);
-
-  final TextEditingController? controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      decoration: getDecoration(),
-      style: ThemeFonts.s.copyWith(
-        color: ThemeColors.mainText,
-        leadingDistribution: TextLeadingDistribution.even,
-      ),
-      minLines: 4,
-      maxLines: 8,
-    );
-  }
-
-  InputDecoration getDecoration() {
-    return InputDecoration(
-      hintText: 'Расскажите подробнее о мероприятии, '
-          'времени и месте проведения',
-      errorStyle: const TextStyle(
-        fontSize: 0,
-      ),
-      hintStyle: ThemeFonts.s.copyWith(
-        color: ThemeColors.secondaryText,
-        leadingDistribution: TextLeadingDistribution.even,
-      ),
-      border: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.outline,
-        ),
-      ),
-      alignLabelWithHint: true,
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.outline,
-        ),
-      ),
-      disabledBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.outline,
-        ),
-      ),
-      enabledBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.outline,
-        ),
-      ),
-      errorBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.primaryRed,
-        ),
-      ),
-      focusedErrorBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(8),
-        ),
-        borderSide: BorderSide(
-          width: 1,
-          color: ThemeColors.primaryRed,
-        ),
-      ),
-    );
-  }
+  LocalAchievement({
+    required this.name,
+    required this.desc,
+  });
 }

@@ -1,10 +1,10 @@
-import 'package:event_runner/business_logic/cubit/cubit.dart';
-import 'package:event_runner/business_logic/storage.dart';
+import 'package:event_runner/business_logic/business_logic.dart';
 import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/login/first.dart';
-import 'package:event_runner/ui/main/main.dart';
+import 'package:event_runner/ui/main/main.dart' hide Profile;
 import 'package:event_runner/ui/onboard/onboard.dart';
 import 'package:event_runner/util/theme.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -122,12 +122,16 @@ class MainApp extends StatelessWidget {
         providers: [
           BlocProvider(
             create: (_) => EventCubit(
-              RepositoryProvider.of<Database>(context),
+              GetEventsApiDBImpl(
+                RepositoryProvider.of<Database>(context),
+              ),
             ),
           ),
           BlocProvider(
             create: (_) => ProfileCubit(
-              RepositoryProvider.of<Database>(context),
+              ProfileApiDBImpl(
+                RepositoryProvider.of<Database>(context),
+              ),
               profile: profile,
             ),
           ),

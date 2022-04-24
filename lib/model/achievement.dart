@@ -6,7 +6,7 @@ class Achievement extends Persistable {
   final String desc;
 
   Achievement({
-    required int id,
+    int? id,
     required this.eventId,
     required this.name,
     required this.desc,

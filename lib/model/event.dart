@@ -12,7 +12,7 @@ class Event extends Persistable {
   final EventState state;
 
   Event({
-    required int id,
+    int? id,
     required this.creatorId,
     required this.name,
     required this.desc,

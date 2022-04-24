@@ -168,6 +168,7 @@ class _ScreenState extends State<Screen> {
               onTap: state is LoginLoading
                   ? null
                   : () {
+                      FocusScope.of(context).unfocus();
                       BlocProvider.of<LoginCubit>(context).tryLogin(
                         mailController.text,
                         passController.text,

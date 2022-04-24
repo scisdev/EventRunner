@@ -1,10 +1,11 @@
 import 'package:bloc/bloc.dart';
+import 'package:event_runner/business_logic/api/get_events_api.dart';
 import 'package:event_runner/model/model.dart' hide EventState;
-import 'cubit.dart';
+import 'state.dart';
 
 class EventCubit extends Cubit<EventState> {
-  final Database _db;
-  EventCubit(this._db)
+  final GetEventsApi _api;
+  EventCubit(this._api)
       : super(EventState(
           filterCategory: null,
           events: const [],
@@ -25,12 +26,16 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
+  void refresh() {
+    emit(state.withEvents(const []));
+    load();
+  }
+
   void selectFilter(String? filter) {
     emit(state.withCategory(filter));
   }
 
   Future<List<Event>> _getFromDatabase() async {
-    await Future.delayed(const Duration(seconds: 2));
-    return await _db.events.getAll();
+    return (await _api.getEvents()).data;
   }
 }
