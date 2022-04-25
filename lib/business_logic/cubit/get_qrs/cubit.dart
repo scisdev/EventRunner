@@ -12,6 +12,7 @@ class GetQrCubit extends Cubit<GetQrState> {
   void getQrs(Event event) async {
     if (state is GetQrLoading) return;
     emit(GetQrLoading());
+    await Future.delayed(const Duration(seconds: 2));
 
     final res = await _api.getQrs(event);
     emit(res.success ? GetQrSuccess(res.data) : GetQrFailure(res.error));

@@ -1,3 +1,4 @@
+import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/widgets/widgets.dart';
 import 'package:event_runner/util/theme.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,14 @@ class _PageThreeState extends State<PageThree> {
             content: const Text('Далее'),
             onTap: () {
               final cel = CreateEventLayout.of(context);
+
+              if (cel.qrUsage == QrUsage.everyStep && cel.steps.isEmpty) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Добавьте хотя бы один шаг!'),
+                ));
+                return;
+              }
 
               for (final step in cel.steps) {
                 if (step.isEmpty) {

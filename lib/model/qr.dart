@@ -18,7 +18,9 @@ abstract class Qr extends Persistable {
   @override
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'type': type,
+      'eventId': eventId,
     }..addAll(_additional());
   }
 

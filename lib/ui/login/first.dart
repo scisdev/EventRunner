@@ -61,8 +61,8 @@ class Screen extends StatefulWidget {
 class _ScreenState extends State<Screen> {
   bool obscuring = true;
 
-  final mailController = TextEditingController();
-  final passController = TextEditingController();
+  final mailController = TextEditingController(text: 'ivan_gavr@gmail.com');
+  final passController = TextEditingController(text: 'Иван');
 
   @override
   void dispose() {

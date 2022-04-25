@@ -1,6 +1,8 @@
 export '../database.dart';
 export 'add_event/cubit.dart';
 export 'add_event/state.dart';
+export 'event_info/cubit.dart';
+export 'event_info/state.dart';
 export 'gen_qrs/cubit.dart';
 export 'gen_qrs/state.dart';
 export 'get_events/cubit.dart';

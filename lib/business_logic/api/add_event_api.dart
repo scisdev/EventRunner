@@ -26,7 +26,6 @@ class AddEventApiDBImpl extends AddEventApi {
       final createdEvent = await _db.events.persistNew(event);
       await _addSteps(steps, createdEvent.id!);
       await _addAchievements(achievements, createdEvent.id!);
-      await _generateQrs(createdEvent);
 
       return Result.success(createdEvent);
     } catch (_) {
@@ -61,47 +60,6 @@ class AddEventApiDBImpl extends AddEventApi {
           );
         }).toList(),
       ));
-    } catch (_) {
-      rethrow;
-    }
-  }
-
-  Future<Result<List<Qr>>> _generateQrs(Event createdEvent) async {
-    try {
-      if (createdEvent.qrUsage == QrUsage.noQr) {
-        return Result.success([]);
-      } else if (createdEvent.qrUsage == QrUsage.achievements) {
-        return Result.success(
-          await _db.qrs.persistBatch(
-            (await _db.achievements.getAll())
-                .where((a) => a.eventId == createdEvent.id)
-                .map((a) {
-              return AchievementQr(achId: a.id!, eventId: a.eventId);
-            }).toList(),
-          ),
-        );
-      } else if (createdEvent.qrUsage == QrUsage.everyStep) {
-        return Result.success(
-          await _db.qrs.persistBatch(
-            (await _db.steps.getAll())
-                .where((s) => s.eventId == createdEvent.id)
-                .map((s) {
-              return StepQr(stepId: s.id!, eventId: s.eventId);
-            }).toList(),
-          ),
-        );
-      } else if (createdEvent.qrUsage == QrUsage.onlyIn) {
-        return Result.success([
-          await _db.qrs.persistNew(
-            EntryQr(eventId: createdEvent.id!),
-          )
-        ]);
-      } else {
-        return Result.success(await _db.qrs.persistBatch([
-          EntryQr(eventId: createdEvent.id!),
-          ExitQr(eventId: createdEvent.id!),
-        ]));
-      }
     } catch (_) {
       rethrow;
     }

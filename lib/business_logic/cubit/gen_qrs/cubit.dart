@@ -12,6 +12,7 @@ class GenQrCubit extends Cubit<GenQrState> {
     if (state is GenQrLoading) return;
     emit(GenQrLoading());
 
+    await Future.delayed(const Duration(seconds: 2));
     final res = await _api.genQrs(forEvent);
 
     emit(

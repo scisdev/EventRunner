@@ -92,7 +92,8 @@ class _CreateEventLayoutState extends State<CreateEventLayout>
       duration: eventDuration,
       startTime: DateTime.now().add(const Duration(days: 7)),
       qrUsage: qrUsage,
-      posterUrl: '123',
+      posterUrl:
+          'https://t3.ftcdn.net/jpg/00/72/98/56/360_F_72985661_LU1Xk0YQiPBwOuesuuJgwTn0NPlwP8ob.jpg',
       state: EventState.planned,
     );
   }
@@ -107,6 +108,7 @@ class _CreateEventLayoutState extends State<CreateEventLayout>
               MainScreen.of(context).goToMainScreen(true);
               return;
             }
+            BlocProvider.of<ProfileCubit>(context).loadInfo(reload: true);
 
             showDialog(
               context: ctx,

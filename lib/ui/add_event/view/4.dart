@@ -1,4 +1,5 @@
 import 'package:event_runner/business_logic/business_logic.dart';
+import 'package:event_runner/model/model.dart';
 import 'package:event_runner/ui/add_event/add_event.dart';
 import 'package:event_runner/ui/widgets/widgets.dart';
 import 'package:event_runner/util/theme.dart';
@@ -79,6 +80,15 @@ class _PageFourState extends State<PageFour> {
             content: const Text('Создать'),
             onTap: () {
               final cel = CreateEventLayout.of(context);
+
+              if (cel.qrUsage == QrUsage.achievements && cel.achs.isEmpty) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Добавьте хотя бы одно достижение!'),
+                ));
+                return;
+              }
+
               for (final ach in cel.achs) {
                 if (ach.name.isEmpty) {
                   ScaffoldMessenger.of(context).clearSnackBars();

@@ -182,20 +182,13 @@ class Feed extends StatelessWidget {
       ...EventFeedGeneration.generate(events),
     ];
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 450),
-      child: Align(
-        key: ValueKey(res.map((e) => e.hashCode.toString()).join()),
-        alignment: Alignment.topCenter,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            BlocProvider.of<EventCubit>(context).refresh();
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 16, bottom: 120),
-            child: Column(children: res),
-          ),
-        ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        BlocProvider.of<EventCubit>(context).refresh();
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(top: 16, bottom: 120),
+        child: Column(children: res),
       ),
     );
   }

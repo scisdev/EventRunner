@@ -12,6 +12,7 @@ class ProfileApiDBImpl extends ProfileApi {
   @override
   Future<Result<ProfileInfo>> getProfileInfo(int id) async {
     try {
+      await Future.delayed(const Duration(seconds: 1));
       return Result.success(ProfileInfo(
         attendedEvents: await _db.events.getByIds(
           (await _db.attendeeXevent.getAll())

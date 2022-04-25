@@ -5,7 +5,7 @@ class AttendeeXEvent extends Persistable {
   final int eventId;
 
   AttendeeXEvent({
-    required int id,
+    int? id,
     required this.profileId,
     required this.eventId,
   }) : super(id);
