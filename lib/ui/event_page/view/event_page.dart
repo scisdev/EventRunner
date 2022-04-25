@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:event_runner/business_logic/business_logic.dart';
 import 'package:event_runner/business_logic/cubit/event_info/cubit.dart';
@@ -319,9 +321,9 @@ class _QrAreaState extends State<QrArea> {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (ctx, index) {
-                    return QrEntry(qr: state.qrs[index % state.qrs.length]);
+                    return QrEntry(qr: state.qrs[index]);
                   },
-                  childCount: state.qrs.length * 4,
+                  childCount: state.qrs.length,
                 ),
               ),
             );
@@ -423,7 +425,7 @@ class QrEntry extends StatelessWidget {
           ),
           Expanded(
             child: QrImage(
-              data: '23434343434254344343',
+              data: jsonEncode(qr.toJson()),
               padding: const EdgeInsets.all(12),
             ),
           ),

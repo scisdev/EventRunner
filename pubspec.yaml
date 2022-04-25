@@ -16,6 +16,7 @@ dependencies:
   flutter_keyboard_visibility: ^5.2.0
   flutter_sticky_header: ^0.6.1
   flutter_svg: ^1.0.3
+  qr_code_scanner: ^0.7.0
   qr_flutter: ^4.0.0
   shared_preferences: ^2.0.13
 

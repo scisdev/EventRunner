@@ -286,9 +286,9 @@ class CreatedEvents extends StatelessWidget {
         ),
         delegate: SliverChildBuilderDelegate(
           (_, i) => EventEntry(
-            events[i % events.length],
+            events[i],
           ),
-          childCount: events.length * 10,
+          childCount: events.length,
         ),
       ),
     );
@@ -350,9 +350,9 @@ class AttendedEvents extends StatelessWidget {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (_, i) => EventEntryMini(
-            events[i % events.length],
+            events[i],
           ),
-          childCount: events.length * 10,
+          childCount: events.length,
         ),
       ),
     );

@@ -1,10 +1,17 @@
+import 'package:event_runner/business_logic/api/scan_qr_api.dart';
+import 'package:event_runner/business_logic/cubit/scan_qr/cubit.dart';
+import 'package:event_runner/main.dart';
 import 'package:event_runner/ui/add_event/add_event.dart';
 import 'package:event_runner/ui/main/view/screens/home.dart';
 import 'package:event_runner/ui/main/view/screens/profile.dart';
+import 'package:event_runner/ui/scan_qr/view.dart';
 import 'package:event_runner/util/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../business_logic/cubit/cubit.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -72,6 +79,19 @@ class _MainScreenState extends State<MainScreen> {
       _selectedScreen = Profile();
     });
   }
+
+  void goToQrScan() {
+    Navigator.of(context).push(NavigatorPage(builder: (_) {
+      return BlocProvider<QrScanCubit>(
+        create: (_) => QrScanCubit(
+          ScanQrApiDBImpl(
+            RepositoryProvider.of<Database>(context),
+          ),
+        ),
+        child: const QrView(),
+      );
+    }));
+  }
 }
 
 class MainAppBar extends StatelessWidget {
@@ -132,7 +152,9 @@ class MainAppBar extends StatelessWidget {
                 2,
                 'QR-сканнер',
                 null,
-                () {},
+                () {
+                  MainScreen.of(context).goToQrScan();
+                },
               ),
               item(
                 context,
@@ -153,17 +175,23 @@ class MainAppBar extends StatelessWidget {
             ]),
           ),
         ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: ThemeColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: SvgPicture.asset(ThemeDrawable.qrScan),
+        GestureDetector(
+          onTap: () {
+            MainScreen.of(context).goToQrScan();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: ThemeColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: SvgPicture.asset(ThemeDrawable.qrScan),
+              ),
             ),
           ),
         ),
