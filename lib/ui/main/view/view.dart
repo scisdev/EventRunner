@@ -175,13 +175,12 @@ class MainAppBar extends StatelessWidget {
             ]),
           ),
         ),
-        GestureDetector(
-          onTap: () {
-            MainScreen.of(context).goToQrScan();
-          },
-          behavior: HitTestBehavior.opaque,
-          child: Align(
-            alignment: Alignment.topCenter,
+        Align(
+          alignment: Alignment.topCenter,
+          child: GestureDetector(
+            onTap: () {
+              MainScreen.of(context).goToQrScan();
+            },
             child: Container(
               width: 56,
               height: 56,
